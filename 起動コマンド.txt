@@ -1,0 +1,6 @@
+# チャットボット側
+s2-chatbot>python main.py
+
+# WebAPI側
+s2-chatbot>cd webapi
+s2-chatbot\webapi>uvicorn api:app --reload

@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "MS-CEINTL.vscode-language-pack-ja",
+    "esbenp.prettier-vscode",
+    "ms-python.python",
+    "ms-python.black-formatter",
+    "TabNine.tabnine-vscode",
+    "ms-toolsai.jupyter",
+    "mosapride.zenkaku",
+    "oderwat.indent-rainbow",
+    "vscode-icons-team.vscode-icons"
+  ]
+}
