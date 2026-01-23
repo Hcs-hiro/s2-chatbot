@@ -3,6 +3,8 @@ import requests
 from chat import Chat
 from status import FuncStatus
 
+import random
+
 
 class ChatLogic:
     """チャットロジッククラス
@@ -19,6 +21,8 @@ class ChatLogic:
         # TODO 入力パラメータの追加
         self.x = None
         self.y = None
+        self.hit_answer = None
+        self.guess_counter = 0
 
     def replay(self, message):
         """チャットの応答
@@ -40,10 +44,44 @@ class ChatLogic:
             self.x, self.y = (None, None)
             self.status.calc_flg = True
             chat.set_replay_data("足したい値を入力してください")
-       
-        
-        elif "追加する機能の処理メッセージ" in message:
-            pass
+
+        elif "給与計算" in message:
+            self.x, self.y = (None, None)
+            self.status.payroll_flg = True
+            chat.set_replay_data("労働時間：")
+        elif "名言" in message:
+            url = "http://127.0.0.1:8000/good_words/"
+            param = {"message": message}
+            res = requests.get(url, param)
+            replay_message = res.json()["result"]
+            image_idx = res.json()["image_idx"]
+            chat.set_replay_data(replay_message, image_idx, True)
+        elif "おみくじ" in message:
+            url = "http://127.0.0.1:8000/omikuji/"
+            param = {"message": message}
+            res = requests.get(url, param)
+            replay_message = res.json()["result"]
+            image_idx = res.json()["image_idx"]
+            chat.set_replay_data(replay_message, image_idx, True)
+
+        elif "数当てゲーム" in message:
+            url = "http://127.0.0.1:8000/hitgame/"
+            self.hit_answer = random.randint(1, 100)
+            self.guess_counter = 0
+            self.status.hitgame_flg = True
+            chat.set_replay_data("予想を入力してください")
+        elif "何時" in message:
+            url = "http://127.0.0.1:8000/get_datetime/"
+            param = {"message": message}
+            res = requests.get(url)
+            replay_message = "{}だよん".format(res.json()["result"])
+            image_idx = res.json()["image_idx"]
+            chat.set_replay_data(replay_message, image_idx, True)
+        elif "郵便番号" in message:
+            url = "http://127.0.0.1:8000/zipcode/"
+            self.status.zipcode_flg = True
+            chat.set_replay_data("郵便番号を入力してください")
+
         else:
             # WebAPIリクエストURI
             url = "http://127.0.0.1:8000/replay/"
@@ -71,10 +109,20 @@ class ChatLogic:
         chat = Chat()
         if self.x == None:
             replay_message1 = "もう一つの値は？"
-            self.x = int(message)
+            try:
+                self.x = int(message)
+            except ValueError:
+                chat.set_replay_data("数字以外を入力しないでください")
+                return chat
             chat.set_replay_data(replay_message1)
         else:
-            self.y = int(message)
+            try:
+                self.y = int(message)
+            except ValueError:
+                chat.set_replay_data("数字以外を入力しないでください")
+                return chat
+
+            # chat.set_replay_data(replay_message1)
             url = "http://127.0.0.1:8000/add/"
             param = {"x": self.x, "y": self.y}
             res = requests.get(url, param)
@@ -84,6 +132,87 @@ class ChatLogic:
             chat.set_replay_data(
                 replay_message2.format(result), image_idx=1, init_flg=True
             )
+        return chat
+
+    def payroll_func(self, message):
+        chat = Chat()
+        if self.x == None:
+            replay_message1 = "時給："
+            try:
+                self.x = int(message)
+            except ValueError:
+                chat.set_replay_data("数字以外を入力しないでください")
+                return chat
+
+            chat.set_replay_data(replay_message1)
+        else:
+            try:
+                self.y = int(message)
+            except ValueError:
+                chat.set_replay_data("数字以外を入力しないでください")
+                return chat
+            url = "http://127.0.0.1:8000/payroll/"
+            param = {"x": self.x, "y": self.y}
+            res = requests.get(url, param)
+            result = res.json()["result"]
+            replay_message2 = "給料は、{0}です。"
+            self.status.payroll_flg = False
+            chat.set_replay_data(replay_message2.format(result), image_idx=1, init_flg=True)
+        return chat
+
+    def hitgame_func(self, message):
+        chat = Chat()
+
+        self.guess_counter  += 1
+        try:
+            guess = int(message)
+        except ValueError:
+            chat.set_replay_data("数字以外を入力しないでください")
+            return chat
+
+        url = "http://127.0.0.1:8000/hitgame/"
+        param = {
+            "answer": self.hit_answer,
+            "guess": guess
+        }
+
+        res = requests.get(url, param)
+        result = res.json()["result"]
+
+        if result == "hit":
+            replay_message = "🎉 正解！おめでとう！{}回で正解！".format(self.guess_counter)
+            self.status.hitgame_flg = False
+            self.hit_answer = random.randint(1, 10)
+            chat.set_replay_data(replay_message, image_idx=6, init_flg=True)
+
+        elif result == "near":
+            replay_message = "おしい！かなり近いです！（±2）"
+            chat.set_replay_data(replay_message, 8)
+
+        elif result == "low":
+            replay_message = "もっと大きい数です"
+            chat.set_replay_data(replay_message, 9)
+
+        elif result == "high":
+            replay_message = "もっと小さい数です"
+            chat.set_replay_data(replay_message, 10)
+
+        return chat
+    def zipcode_func(self, message):
+        chat = Chat()
+
+        url = "http://127.0.0.1:8000/zipcode/"
+        param = {"code": message}
+
+        res = requests.get(url, params=param)
+
+        result = res.json()["result"]
+        replay_message = "住所は\n{}です。\nえ、ここに住んでるの？？".format(result)
+
+        chat.set_replay_data(replay_message,1, init_flg=True)
+
+        self.status.zipcode_flg = False
+
         return chat
 
 
@@ -117,6 +246,3 @@ def calc_func(self, message):
         self.status.calc_flg = False
         chat.set_replay_data(replay_message2.format(result), image_idx=1, init_flg=True)
     return chat
-
-
-

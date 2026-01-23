@@ -29,6 +29,8 @@ class ChatControl:
 
         Raises:
             ValueError: 数値入力が必要なケースで文字が入力された場合に発生
+
+
         """
         # TODO 機能継続チェック
         if self.chatLogic.status.calc_flg:

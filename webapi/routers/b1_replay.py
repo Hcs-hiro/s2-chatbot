@@ -24,10 +24,10 @@ async def replay(message: str):
 
     if message == "おはよう":
         result = "おはよう！！"
-        image_idx = 1
+        image_idx = 2
     elif message == "チー牛":
         result = "はぁ？！！\nチー牛じゃねえわ！\nトライアル屯田店にうめんぞこらぁ！！"
-        image_idx = 1
+        image_idx = 3
     else:
         result = "え？すみません。\nよくわかりません。"
         image_idx = 1

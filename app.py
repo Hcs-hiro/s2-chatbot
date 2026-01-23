@@ -4,6 +4,10 @@ from time import sleep
 
 from control import ChatControl
 
+
+from PIL import Image, ImageTk
+
+
 class Application(tk.Frame):
     """メインウィンドウ作成クラス
 
@@ -53,40 +57,63 @@ class Application(tk.Frame):
         self.canvas.place(x=0, y=0)
 
         # TODO チャットボットイメージ画像の設定（表示画像拡張エリア）
+        from PIL import Image, ImageTk
+
         self.img_list = []
-        self.img_list.append(tk.PhotoImage(file="images/ryu.png"))
-        self.img_list.append(tk.PhotoImage(file="images/image.png"))
+
+        for name in [
+            "ryu.png",
+            "image.png",
+            "riku2.png",
+            "ryu2.png",
+            "riku3.png",
+            "riku4.png",
+            "riku.png",
+            "riku8.png",
+            "riku9.png",
+            "riku10.png",
+            "riku11.png"
+        ]:
+            
+            img = Image.open(f"images/{name}").resize((200, 200))
+            photo = ImageTk.PhotoImage(img)
+            self.img_list.append(photo)
+
+        self.canvas.create_image(
+            235, 280, image=self.img_list[0], anchor="center", tag="ai-bot"
+        )
+
         self.canvas.create_image(235, 280, image=self.img_list[0], tag="ai-bot")
 
         # フレームに画像の設定
         self.frame_img = tk.PhotoImage(file="images/tablet.png")
         self.canvas.create_image(235, 315, image=self.frame_img)
 
-        #ボタン
+        # ボタン
         self.askbutton = tk.Button(text="▲", font=("", 18))
         self.askbutton.place(x=386, y=511)
-        #ボタンに紐づけ
+        # ボタンに紐づけ
         self.askbutton["command"] = self.ask_click
 
-        #出力エリア
+        # 出力エリア
         self.canvas.create_rectangle(40, 420, 430, 500, outline = "pink", fill = "white")
         self.answer_font = font.Font(self.master,family="HG創英角ﾎﾟｯﾌﾟ体",size=16)
         self.answer = tk.Label(text="(話しかけられるのを待ってる)", bg="white", font=self.answer_font,justify='left')
         self.answer.place(x=50, y=430)
 
-        #入力エリア
+        # 入力エリア
         self.inputarea = tk.Entry(width=21, bd=4)
         self.inputarea.place(x=34, y=511)
         self.inputarea.focus()
 
-        #リターンキー対応
+        # リターンキー対応
         self.inputarea.bind('<Return>', self.ask_enter)
 
-    #エンターキー押した
+    # エンターキー押した
     def ask_enter(self,event):
         self.ask_click()
 
-    #ボタン押した
+    # ボタン押した
     def ask_click(self):
         """ボタン押下時の動作制御
 
@@ -114,7 +141,6 @@ class Application(tk.Frame):
             self.answer["text"] += "."
             sleep(0.5)
 
-
         self.canvas.itemconfig("ai-bot", image=self.img_list[image_no])
         self.answer["text"] = replay_message
         self.master.update()
@@ -123,4 +149,3 @@ class Application(tk.Frame):
             sleep(3)
             self.canvas.itemconfig("ai-bot", image=self.img_list[0])
             self.answer["text"] = "(話しかけられるのを待ってる)"
-
