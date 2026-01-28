@@ -7,6 +7,10 @@ from routers import b5_omikuji
 from routers import b6_hitgame
 from routers import b7_get_datetime
 from routers import b8_zipcode
+from routers import b9_log_record
+from routers import b10_log_output
+from routers import b11_get_best_record
+from routers import b11_put_best_record
 
 app = FastAPI()
 # TODO 規定課題の機能追加
@@ -18,5 +22,10 @@ app.include_router(b5_omikuji.router)
 app.include_router(b6_hitgame.router)
 app.include_router(b7_get_datetime.router)
 app.include_router(b8_zipcode.router)
+app.include_router(b9_log_record.router)
+app.include_router(b10_log_output.router)
+
+app.include_router(b11_get_best_record.router)
+app.include_router(b11_put_best_record.router)
 
 # TODO 追加課題の機能追加

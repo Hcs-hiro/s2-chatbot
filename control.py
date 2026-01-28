@@ -61,6 +61,8 @@ class ChatControl:
             chat = self.chatLogic.jyanken_func(message)
         elif self.chatLogic.status.translator_flg:
             chat = self.chatLogic.translator_func(message)
+        # elif self.chatLogic.status.log_flg:
+        #     chat = self.chatLogic.record_output(message)
         else:
             chat = self.chatLogic.replay(message)
         return chat

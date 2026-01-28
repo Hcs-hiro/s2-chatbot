@@ -4,6 +4,7 @@ from chat import Chat
 from status import FuncStatus
 
 import random
+import json
 
 
 class ChatLogic:
@@ -81,6 +82,13 @@ class ChatLogic:
             url = "http://127.0.0.1:8000/zipcode/"
             self.status.zipcode_flg = True
             chat.set_replay_data("郵便番号を入力してください")
+        elif "記録" in message:
+            self.status.record_flg = True
+            chat.set_replay_data("記録したい内容入力して：")
+
+        elif "ログ出力" in message:
+            return self.record_output(message)
+            
 
         else:
             # WebAPIリクエストURI
@@ -180,6 +188,22 @@ class ChatLogic:
         result = res.json()["result"]
 
         if result == "hit":
+
+            get_url = "http://127.0.0.1:8000/get_best_record/"
+            res_best = requests.get(get_url)
+            best_record = res_best.json()["result"]
+
+            current_record = self.guess_counter
+
+            if current_record < best_record:
+                put_url = "http://127.0.0.1:8000/put_best_record/"
+                body = {"best_record": current_record}
+                requests.put(put_url, json=body)
+                best_record = current_record
+                record_msg = "🏆 新記録達成！"
+            else:
+                record_msg = "最高記録は{}回".format(best_record)
+
             replay_message = "🎉 正解！おめでとう！{}回で正解！".format(self.guess_counter)
             self.status.hitgame_flg = False
             self.hit_answer = random.randint(1, 10)
@@ -214,35 +238,34 @@ class ChatLogic:
         self.status.zipcode_flg = False
 
         return chat
+    
+    def record_func(self, message):
+        chat = Chat()
+        url = "http://127.0.0.1:8000/log_record/"
+        body = {"message": message}
 
-
-def calc_func(self, message):
-    """計算機能
-
-    足し算APIを呼び出し、チャットの応答メッセージを作成する。
-    計算処理が終わった場合は、計算クラスのインスタンス、機能実行状態の更新を行う。
-
-    Args:
-        message (str): 処理対象のメッセージ.
-
-    Returns:
-        Chat: チャットの応答情報
-
-    """
-    chat = Chat()
-    if self.x == None:
-        replay_message1 = "もう一つの値は？"
-        self.x = int(message)
-        chat.set_replay_data(replay_message1)
-
-   
-    else:
-        self.y = int(message)
-        url = "http://127.0.0.1:8000/add/"
-        param = {"x": self.x, "y": self.y}
-        res = requests.get(url, param)
+        res = requests.post(url, json.dumps(body))
         result = res.json()["result"]
-        replay_message2 = "合計は、{0}です。"
-        self.status.calc_flg = False
-        chat.set_replay_data(replay_message2.format(result), image_idx=1, init_flg=True)
-    return chat
+        replay_message = result
+        chat.set_replay_data(replay_message, image_idx=3, init_flg=True)
+
+        self.status.record_flg = False
+
+        return chat
+
+    def record_output(self,message):
+        chat = Chat()
+        url = "http://127.0.0.1:8000/log_output/"
+
+        res = requests.post(url)
+        result = res.json()["result"]
+        replay_message = "\n".join(result[-3:])
+
+        chat.set_replay_data(replay_message, image_idx=3, init_flg=True)
+
+        # self.status.log_flg = False
+
+        return chat
+
+
+

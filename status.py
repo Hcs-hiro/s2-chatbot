@@ -25,3 +25,4 @@ class FuncStatus:
         self.condition_flg = False
         self.jyanken_flg = False
         self.translator_flg = False
+        # self.log_flg = False
